@@ -1,4 +1,4 @@
-# myhands
+# Inventory
 
 A new Flutter project.
 
