@@ -3,7 +3,6 @@
 
 //import 'dart:html';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart';
@@ -11,10 +10,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:crypt/crypt.dart';
 import 'package:myhands/models/computernumbers_model.dart';
+import 'package:myhands/models/equipmentbelonging_model.dart';
 import 'package:myhands/models/teacher_model.dart';
 
 class HttpService {
-  final String url = "e59c-31-204-181-129.ngrok.io";
+  final String url = "f69a-31-204-181-129.ngrok.io";
 
   Future<void> getUser(
       String login, String password, BuildContext context) async {
@@ -125,6 +125,22 @@ class HttpService {
       List<EquipmentNumbers> equipmentNumbers =
           body.map((dynamic item) => EquipmentNumbers.fromJson(item)).toList();
       return equipmentNumbers;
+    } else {
+      throw Exception("Что-то пошло не так");
+    }
+  }
+
+  Future<List<Equipmentbelonging>> getBelongings() async {
+    final uriBelongings = Uri.https(url, '/equipmentBelongings');
+
+    Response res = await get(uriBelongings);
+    if (res.statusCode == 200) {
+      List<dynamic> body = jsonDecode(res.body);
+
+      List<Equipmentbelonging> equipmentBelongings = body
+          .map((dynamic item) => Equipmentbelonging.fromJson(item))
+          .toList();
+      return equipmentBelongings;
     } else {
       throw Exception("Что-то пошло не так");
     }

@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myhands/http_service.dart';
-import 'package:myhands/models/classrooms_model.dart';
 import 'package:myhands/models/computernumbers_model.dart';
+import 'package:myhands/models/equipmentbelonging_model.dart';
 
 class AddEquipment extends StatefulWidget {
   //const AddEquipment({ Key? key }) : super(key: key);
@@ -34,6 +34,8 @@ class _AddEquipmentState extends State<AddEquipment> {
   String equipmentNumber;
   final controllerInventoryNumber = TextEditingController();
   final controllerNumberInClassroom = TextEditingController();
+  String given = 'Да';
+  String belonging = 'Учебно-лабораторное оборудование';
   //List<Classroom> classrooms;
   @override
   Widget build(BuildContext context) {
@@ -287,15 +289,95 @@ class _AddEquipmentState extends State<AddEquipment> {
                       height: 15,
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text("Принадлежность"), Text("выбор ")],
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Принадлежность",
+                        )
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        FutureBuilder<List<Equipmentbelonging>>(
+                          future: httpService.getBelongings(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<List<Equipmentbelonging>>
+                                  snapshot) {
+                            if (snapshot.connectionState !=
+                                ConnectionState.done) {
+                              return const SizedBox(
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 3),
+                                  height: 20.0,
+                                  width: .0);
+                            }
+                            if (snapshot.hasData) {
+                              if (snapshot.data != null) {
+                                List<Equipmentbelonging> equipmentBelonging =
+                                    snapshot.data;
+                                return DropdownButton<String>(
+                                  alignment: Alignment.centerRight,
+                                  value: belonging,
+                                  onChanged: (String val) {
+                                    _onDropDownChangedBelonging(val);
+                                  },
+                                  icon:
+                                      const Icon(Icons.arrow_downward_rounded),
+                                  iconSize: 24,
+                                  elevation: 16,
+                                  style: const TextStyle(
+                                      color: Colors.blue, fontSize: 12),
+                                  underline: Container(
+                                    height: 2,
+                                    color: Colors.grey,
+                                  ),
+                                  items: equipmentBelonging.map((item) {
+                                    return DropdownMenuItem(
+                                        child: Text(item.name),
+                                        value: item.name.toString());
+                                  }).toList(),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ],
                     ),
                     const SizedBox(
                       height: 15,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text("Выдано"), Text("да/нет ")],
+                      children: [
+                        Text("Выдано"),
+                        DropdownButton<String>(
+                          value: given,
+                          icon: const Icon(Icons.arrow_downward_rounded),
+                          iconSize: 24,
+                          elevation: 16,
+                          style: const TextStyle(color: Colors.blue),
+                          underline: Container(
+                            height: 2,
+                            color: Colors.grey,
+                          ),
+                          onChanged: (String newValue) {
+                            setState(() {
+                              given = newValue;
+                            });
+                          },
+                          items: <String>['Да', 'Нет']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        )
+                      ],
                     ),
                     const SizedBox(
                       height: 15,
@@ -454,5 +536,11 @@ class _AddEquipmentState extends State<AddEquipment> {
 
   void cancel() {
     _currentStep > 0 ? setState(() => _currentStep -= 1) : null;
+  }
+
+  void _onDropDownChangedBelonging(String belong) {
+    setState(() {
+      this.belonging = belong;
+    });
   }
 }
