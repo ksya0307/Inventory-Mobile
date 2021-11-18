@@ -129,19 +129,4 @@ class HttpService {
       throw Exception("Что-то пошло не так");
     }
   }
-
-  // Future<List<EquipmentNumbers>> fetchNumbers(String inClassroom) async {
-  //   final queryParams = {'classroom': inClassroom};
-  //   final uriClNumbers = Uri.https(url, '/computerNumbers', queryParams);
-  //   final response = await get(uriClNumbers);
-
-  //   return parseNumbers(response.body);
-  // }
-
-  // List<EquipmentNumbers> parseNumbers(String responseBody) {
-  //   final parsed = jsonDecode(responseBody).cast<Map<String, dynamic>>();
-  //   return parsed
-  //       .map<EquipmentNumbers>((json) => EquipmentNumbers.fromJson(json))
-  //       .toList();
-  // }
 }
