@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:myhands/http_service.dart';
 import 'package:myhands/models/computernumbers_model.dart';
 import 'package:myhands/models/equipmentbelonging_model.dart';
+import 'package:myhands/models/teacher_model.dart';
 
 class AddEquipment extends StatefulWidget {
   //const AddEquipment({ Key? key }) : super(key: key);
@@ -28,17 +29,28 @@ class _AddEquipmentState extends State<AddEquipment> {
 
   int _currentStep = 0;
   StepperType stepperType = StepperType.vertical;
+
+  //dropdown menu
+  String given = 'Да';
+  String isApplication = 'Да';
+  String belonging = 'Учебно-лабораторное оборудование';
   String dropdownValueGet = '109'; //закуплено
   String dropdownValueIn = '109'; //распределено
-  String inClassroom;
+  String inClassroom; //
   String equipmentNumber;
+  String respTeacher;
+
+  //контроллеры
   final controllerInventoryNumber = TextEditingController();
   final controllerNumberInClassroom = TextEditingController();
-  String given = 'Да';
-  String belonging = 'Учебно-лабораторное оборудование';
-  //List<Classroom> classrooms;
+  final controllerDocument = TextEditingController();
+  final controllerInfo = TextEditingController();
+  final controllerComment = TextEditingController();
+  final controllerChernega = TextEditingController();
+  final controllerPorts = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    //текстовые поля
     final inventoryNumberField = TextFormField(
       controller: controllerInventoryNumber,
       autofocus: false,
@@ -66,6 +78,336 @@ class _AddEquipmentState extends State<AddEquipment> {
         fillColor: Colors.white12,
         enabled: true,
       ),
+    );
+    final info = TextFormField(
+        controller: controllerInfo,
+        minLines: 1,
+        maxLines: 20,
+        keyboardType: TextInputType.multiline,
+        decoration: InputDecoration(
+          labelText: "Информация об оборудовании",
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+        ));
+    final document = TextFormField(
+      controller: controllerDocument,
+      autofocus: false,
+      textAlign: TextAlign.start,
+      inputFormatters: <TextInputFormatter>[
+        WhitelistingTextInputFormatter.digitsOnly
+      ],
+      keyboardType:
+          const TextInputType.numberWithOptions(signed: false, decimal: false),
+      decoration: InputDecoration(
+        suffixIcon: IconButton(
+            icon: const Icon(Icons.border_color_rounded),
+            color: Colors.grey,
+            onPressed: () {}),
+        contentPadding: const EdgeInsets.all(10),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: const BorderSide(
+                color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+            borderSide: const BorderSide(
+                color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+        fillColor: Colors.white12,
+        enabled: true,
+      ),
+    );
+    final comment = TextFormField(
+        controller: controllerComment,
+        minLines: 1,
+        maxLines: 20,
+        keyboardType: TextInputType.multiline,
+        decoration: InputDecoration(
+          labelText: "Информация об оборудовании",
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+        ));
+    final ports = TextFormField(
+        controller: controllerPorts,
+        minLines: 1,
+        maxLines: 20,
+        keyboardType: TextInputType.multiline,
+        decoration: InputDecoration(
+          labelText: "Информация об оборудовании",
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+        ));
+    final commentChernega = TextFormField(
+        controller: controllerChernega,
+        minLines: 1,
+        maxLines: 20,
+        keyboardType: TextInputType.multiline,
+        decoration: InputDecoration(
+          labelText: "Информация об оборудовании",
+          enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+          focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(
+                  color: Color.fromRGBO(0, 47, 167, 1.0), width: 2.0)),
+        ));
+    //выпадающие списки
+    final dropDownMenuBelonging = FutureBuilder<List<Equipmentbelonging>>(
+      future: httpService.getBelongings(),
+      builder: (BuildContext context,
+          AsyncSnapshot<List<Equipmentbelonging>> snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox(
+              child: CircularProgressIndicator(strokeWidth: 3),
+              height: 20.0,
+              width: .0);
+        }
+        if (snapshot.hasData) {
+          if (snapshot.data != null) {
+            List<Equipmentbelonging> equipmentBelonging = snapshot.data;
+            return DropdownButton<String>(
+              alignment: Alignment.bottomLeft,
+              value: belonging,
+              onChanged: (String val) {
+                _onDropDownChangedBelonging(val);
+              },
+              icon: const Icon(Icons.arrow_downward_rounded),
+              iconSize: 24,
+              elevation: 16,
+              style: const TextStyle(color: Colors.blue, fontSize: 12),
+              underline: Container(
+                height: 2,
+                color: Colors.grey,
+              ),
+              items: equipmentBelonging.map((item) {
+                return DropdownMenuItem(
+                    child: Text(item.name), value: item.name.toString());
+              }).toList(),
+            );
+          }
+        }
+      },
+    );
+    final dropDownMenuGiven = DropdownButton<String>(
+      value: given,
+      icon: const Icon(Icons.arrow_downward_rounded),
+      iconSize: 24,
+      elevation: 16,
+      style: const TextStyle(color: Colors.blue),
+      underline: Container(
+        height: 2,
+        color: Colors.grey,
+      ),
+      onChanged: (String newValue) {
+        setState(() {
+          given = newValue;
+        });
+      },
+      items:
+          <String>['Да', 'Нет'].map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
+    final dropDownMenuEqNumbs = FutureBuilder<List<EquipmentNumbers>>(
+        future: httpService.getEquipmentNumber(inClassroom),
+        builder: (BuildContext context,
+            AsyncSnapshot<List<EquipmentNumbers>> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox(
+                child: CircularProgressIndicator(strokeWidth: 3),
+                height: 20.0,
+                width: 20.0);
+          }
+          if (snapshot.hasData) {
+            if (snapshot.data != null) {
+              List<EquipmentNumbers> equipmentNumbers = snapshot.data;
+              return DropdownButton<String>(
+                value: "$inClassroom-01",
+                onChanged: (String val) {
+                  _onDropDownChangedNumber(val);
+                },
+                icon: const Icon(Icons.arrow_downward_rounded),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.blue),
+                underline: Container(
+                  height: 2,
+                  color: Colors.grey,
+                ),
+                items: equipmentNumbers.map((item) {
+                  return DropdownMenuItem(
+                      child: Text(item.equipmentnumber),
+                      value: item.equipmentnumber.toString());
+                }).toList(),
+              );
+            }
+          }
+        });
+    final dropDownMenuForCl = FutureBuilder<List<Classroom>>(
+        future: httpService.getClassrooms(context),
+        builder:
+            (BuildContext context, AsyncSnapshot<List<Classroom>> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox(
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                ),
+                height: 20.0,
+                width: 20.0);
+          }
+          if (snapshot.hasData) {
+            if (snapshot.data != null) {
+              List<Classroom> classrooms = snapshot.data;
+              return DropdownButton<String>(
+                value: dropdownValueGet,
+                onChanged: (String val) {
+                  _onDropDownChangedGet(val);
+                },
+                icon: const Icon(Icons.arrow_downward_rounded),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.blue),
+                underline: Container(
+                  height: 2,
+                  color: Colors.grey,
+                ),
+                items: classrooms.map((item) {
+                  return DropdownMenuItem(
+                    child: Text(item.classnumber),
+                    value: item.classnumber.toString(),
+                  );
+                }).toList(),
+              );
+            }
+          }
+        });
+    final dropDownMenuInCl = FutureBuilder<List<Classroom>>(
+        future: httpService.getClassrooms(context),
+        builder:
+            (BuildContext context, AsyncSnapshot<List<Classroom>> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox(
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                ),
+                height: 20.0,
+                width: 20.0);
+          }
+          if (snapshot.hasData) {
+            if (snapshot.data != null) {
+              List<Classroom> classrooms = snapshot.data;
+              return DropdownButton<String>(
+                value: dropdownValueIn,
+                onChanged: (String val) {
+                  _onDropDownChangedIn(val);
+                },
+                icon: const Icon(Icons.arrow_downward_rounded),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.blue),
+                underline: Container(
+                  height: 2,
+                  color: Colors.grey,
+                ),
+                items: classrooms.map((item) {
+                  return DropdownMenuItem(
+                    child: Text(item.classnumber),
+                    value: item.classnumber.toString(),
+                  );
+                }).toList(),
+              );
+            }
+          }
+        });
+    final dropDownMenuTeacher = FutureBuilder<List<Teacher>>(
+        future: httpService.getTeachers(context),
+        builder: (BuildContext context, AsyncSnapshot<List<Teacher>> snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const SizedBox(
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                ),
+                height: 20.0,
+                width: 20.0);
+          }
+          if (snapshot.hasData) {
+            if (snapshot.data != null) {
+              List<Teacher> teachers = snapshot.data;
+              return DropdownButton<String>(
+                alignment: Alignment.bottomLeft,
+                value: respTeacher,
+                onChanged: (String val) {
+                  _onDropDownChangedTeacher(val);
+                },
+                icon: const Icon(Icons.arrow_downward_rounded),
+                iconSize: 24,
+                elevation: 16,
+                style: const TextStyle(color: Colors.blue),
+                underline: Container(
+                  height: 2,
+                  color: Colors.grey,
+                ),
+                items: teachers.map((item) {
+                  String ln = item.lastname;
+                  String fn = item.firstname;
+                  String sn = item.secondname;
+                  fn = fn[0];
+                  sn = sn[0];
+
+                  return DropdownMenuItem(
+                    child: Text("$ln $fn. $sn."),
+                    value: item.id.toString(),
+                  );
+                }).toList(),
+              );
+            }
+          }
+        });
+
+    final dropDownMenuIsApplication = DropdownButton<String>(
+      value: isApplication,
+      icon: const Icon(Icons.arrow_downward_rounded),
+      iconSize: 24,
+      elevation: 16,
+      style: const TextStyle(color: Colors.blue),
+      underline: Container(
+        height: 2,
+        color: Colors.grey,
+      ),
+      onChanged: (String newValue) {
+        setState(() {
+          isApplication = newValue;
+        });
+      },
+      items:
+          <String>['Да', 'Нет'].map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
     );
 
     return Scaffold(
@@ -101,93 +443,12 @@ class _AddEquipmentState extends State<AddEquipment> {
                 children: <Widget>[
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text("Распределено"),
-                        FutureBuilder<List<Classroom>>(
-                            future: httpService.getClassrooms(context),
-                            builder: (BuildContext context,
-                                AsyncSnapshot<List<Classroom>> snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return const SizedBox(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 3,
-                                    ),
-                                    height: 20.0,
-                                    width: 20.0);
-                              }
-                              if (snapshot.hasData) {
-                                if (snapshot.data != null) {
-                                  List<Classroom> classrooms = snapshot.data;
-                                  return DropdownButton<String>(
-                                    value: dropdownValueIn,
-                                    onChanged: (String val) {
-                                      _onDropDownChangedIn(val);
-                                    },
-                                    icon: const Icon(
-                                        Icons.arrow_downward_rounded),
-                                    iconSize: 24,
-                                    elevation: 16,
-                                    style: const TextStyle(color: Colors.blue),
-                                    underline: Container(
-                                      height: 2,
-                                      color: Colors.grey,
-                                    ),
-                                    items: classrooms.map((item) {
-                                      return DropdownMenuItem(
-                                        child: Text(item.classnumber),
-                                        value: item.classnumber.toString(),
-                                      );
-                                    }).toList(),
-                                  );
-                                }
-                              }
-                            }),
-                      ]),
+                      children: [const Text("Распределено"), dropDownMenuInCl]),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       const Text("Закуплено"),
-                      FutureBuilder<List<Classroom>>(
-                          future: httpService.getClassrooms(context),
-                          builder: (BuildContext context,
-                              AsyncSnapshot<List<Classroom>> snapshot) {
-                            if (snapshot.connectionState !=
-                                ConnectionState.done) {
-                              return const SizedBox(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                  ),
-                                  height: 20.0,
-                                  width: 20.0);
-                            }
-                            if (snapshot.hasData) {
-                              if (snapshot.data != null) {
-                                List<Classroom> classrooms = snapshot.data;
-                                return DropdownButton<String>(
-                                  value: dropdownValueGet,
-                                  onChanged: (String val) {
-                                    _onDropDownChangedGet(val);
-                                  },
-                                  icon:
-                                      const Icon(Icons.arrow_downward_rounded),
-                                  iconSize: 24,
-                                  elevation: 16,
-                                  style: const TextStyle(color: Colors.blue),
-                                  underline: Container(
-                                    height: 2,
-                                    color: Colors.grey,
-                                  ),
-                                  items: classrooms.map((item) {
-                                    return DropdownMenuItem(
-                                      child: Text(item.classnumber),
-                                      value: item.classnumber.toString(),
-                                    );
-                                  }).toList(),
-                                );
-                              }
-                            }
-                          }),
+                      dropDownMenuForCl
                     ],
                   )
                 ],
@@ -220,47 +481,7 @@ class _AddEquipmentState extends State<AddEquipment> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text("Номер в аудитории"),
-                        FutureBuilder<List<EquipmentNumbers>>(
-                            future: httpService.getEquipmentNumber(inClassroom),
-                            builder: (BuildContext context,
-                                AsyncSnapshot<List<EquipmentNumbers>>
-                                    snapshot) {
-                              if (snapshot.connectionState !=
-                                  ConnectionState.done) {
-                                return const SizedBox(
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 3),
-                                    height: 20.0,
-                                    width: 20.0);
-                              }
-                              if (snapshot.hasData) {
-                                if (snapshot.data != null) {
-                                  List<EquipmentNumbers> equipmentNumbers =
-                                      snapshot.data;
-                                  return DropdownButton<String>(
-                                    value: "$inClassroom-01",
-                                    onChanged: (String val) {
-                                      _onDropDownChangedNumber(val);
-                                    },
-                                    icon: const Icon(
-                                        Icons.arrow_downward_rounded),
-                                    iconSize: 24,
-                                    elevation: 16,
-                                    style: const TextStyle(color: Colors.blue),
-                                    underline: Container(
-                                      height: 2,
-                                      color: Colors.grey,
-                                    ),
-                                    items: equipmentNumbers.map((item) {
-                                      return DropdownMenuItem(
-                                          child: Text(item.equipmentnumber),
-                                          value:
-                                              item.equipmentnumber.toString());
-                                    }).toList(),
-                                  );
-                                }
-                              }
-                            })
+                        dropDownMenuEqNumbs
                       ],
                     ),
                   ],
@@ -268,84 +489,46 @@ class _AddEquipmentState extends State<AddEquipment> {
             Step(
                 title: const Text("Характеристики"),
                 content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    TextFormField(
-                        minLines: 1,
-                        maxLines: 10,
-                        keyboardType: TextInputType.multiline,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                        )),
                     const SizedBox(
                       height: 15,
                     ),
+                    info,
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    const Text(
+                      "Принадлежность",
+                    ),
+                    dropDownMenuBelonging,
+                    const SizedBox(
+                      height: 10,
+                    ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Принадлежность",
-                        )
-                      ],
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [Text("Выдано"), dropDownMenuGiven],
                     ),
                     const SizedBox(
                       height: 15,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        FutureBuilder<List<Equipmentbelonging>>(
-                          future: httpService.getBelongings(),
-                          builder: (BuildContext context,
-                              AsyncSnapshot<List<Equipmentbelonging>>
-                                  snapshot) {
-                            if (snapshot.connectionState !=
-                                ConnectionState.done) {
-                              return const SizedBox(
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 3),
-                                  height: 20.0,
-                                  width: .0);
-                            }
-                            if (snapshot.hasData) {
-                              if (snapshot.data != null) {
-                                List<Equipmentbelonging> equipmentBelonging =
-                                    snapshot.data;
-                                return DropdownButton<String>(
-                                  alignment: Alignment.centerRight,
-                                  value: belonging,
-                                  onChanged: (String val) {
-                                    _onDropDownChangedBelonging(val);
-                                  },
-                                  icon:
-                                      const Icon(Icons.arrow_downward_rounded),
-                                  iconSize: 24,
-                                  elevation: 16,
-                                  style: const TextStyle(
-                                      color: Colors.blue, fontSize: 12),
-                                  underline: Container(
-                                    height: 2,
-                                    color: Colors.grey,
-                                  ),
-                                  items: equipmentBelonging.map((item) {
-                                    return DropdownMenuItem(
-                                        child: Text(item.name),
-                                        value: item.name.toString());
-                                  }).toList(),
-                                );
-                              }
-                            }
-                          },
-                        ),
-                      ],
+                    Text("Номер договора"),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    document,
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Text("Ответственное лицо"),
+                    dropDownMenuTeacher,
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Text("Комментарий"),
+                    comment,
+                    const SizedBox(
+                      height: 10,
                     ),
                     const SizedBox(
                       height: 15,
@@ -353,131 +536,25 @@ class _AddEquipmentState extends State<AddEquipment> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("Выдано"),
-                        DropdownButton<String>(
-                          value: given,
-                          icon: const Icon(Icons.arrow_downward_rounded),
-                          iconSize: 24,
-                          elevation: 16,
-                          style: const TextStyle(color: Colors.blue),
-                          underline: Container(
-                            height: 2,
-                            color: Colors.grey,
-                          ),
-                          onChanged: (String newValue) {
-                            setState(() {
-                              given = newValue;
-                            });
-                          },
-                          items: <String>['Да', 'Нет']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        )
+                        Text("Преобретено по заявке"),
+                        dropDownMenuIsApplication
                       ],
                     ),
                     const SizedBox(
                       height: 15,
                     ),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text("Номер договора"), Text("да/нет ")],
-                    ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text("Ответственное лицо"), Text("учитель ")],
-                    ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      children: [Text("Коментарий")],
+                      children: [Text("Разъемы в видеокарте"), ports],
                     ),
                     const SizedBox(
                       height: 10,
                     ),
-                    TextFormField(
-                        minLines: 1,
-                        maxLines: 10,
-                        keyboardType: TextInputType.multiline,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                        )),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [Text("Преобретено по заявке"), Text("Да/нет")],
-                    ),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [Text("Разъемы в видеокарте")],
-                    ),
+                    Text("Комментарий Чернега.А.М"),
+                    commentChernega,
                     const SizedBox(
                       height: 10,
                     ),
-                    TextFormField(
-                        minLines: 1,
-                        maxLines: 10,
-                        keyboardType: TextInputType.multiline,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                        )),
-                    const SizedBox(
-                      height: 15,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [Text("Комментарий Чернега.А.М")],
-                    ),
-                    const SizedBox(
-                      height: 10,
-                    ),
-                    TextFormField(
-                        minLines: 1,
-                        maxLines: 10,
-                        keyboardType: TextInputType.multiline,
-                        decoration: InputDecoration(
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: const BorderSide(
-                                  color: Color.fromRGBO(0, 47, 167, 1.0),
-                                  width: 2.0)),
-                        )),
                     const SizedBox(
                       height: 15,
                     ),
@@ -541,6 +618,12 @@ class _AddEquipmentState extends State<AddEquipment> {
   void _onDropDownChangedBelonging(String belong) {
     setState(() {
       this.belonging = belong;
+    });
+  }
+
+  void _onDropDownChangedTeacher(String teacher) {
+    setState(() {
+      this.respTeacher = teacher;
     });
   }
 }
